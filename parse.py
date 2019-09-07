@@ -18,34 +18,38 @@ def load_file(f):
 #     side = " ".join(side.split())
 #     print(side)
 
-def is_proposition(letter):
-    return 1 if (letter.isalpha() and letter.isupper()) else 0
+def is_proposition(rule, i):
+    if (i >= len(rule)):
+        return (0)
+    letter = rule[i]
+    if (i + 1 < len(rule) and rule[i + 1].isalpha):
+        return 0 
+    if (not letter.isalpha() or not letter.isupper()):
+        return (0)
+    return (1)
 
 def is_valid_rule(line):
-    brackets = 0
     i = 0
+    brackets = 0
 
-    line = line.strip()
-    line = "".join(line.split())
+    line = "".join(line.strip().split())
     print(line)
     while (i < len(line)):
         if (line[i] == '('):
             brackets += 1
-        else if (line[i] == ')'):
-            if ((i - 1) >= 0 and (line[i - 1].isalpha())):
+        elif (line[i] == ')'):
+            if (brackets and (i - 1) >= 0 and (line[i - 1].isalpha())):
                 brackets -= 1
             else:
                 print("Syntax error near ", line[i], "at column ", i)
                 exit(1)
-        else if (line[i] == '!'):
-            if (i + 1 >= len(line) or (i + 1 < len(line) and not is_proposition(line[i + 1]))
-                print("Syntax error near ", line[i], "at column ", i, ": expected proposition")
-
+        elif (line[i] == '!'):
+            if (not is_proposition(line, [i + 1])):
+                print("Syntax error near ", line[i], "at column ", i, " : expected proposition")
         i += 1
-    print(line)
     if (brackets != 0):
         print("tu fais de la merde /_|_/")
-        # print("Syntax error near ", line[i], "at column ", i)
+        exit(1)
 
 def ignore_comments(lines):
     new_lines = []
@@ -69,4 +73,4 @@ def expert_system():
 
 if (__name__ == "__main__"):
     # expert_system()
-    is_valid_rule("(A+B)B)")
+    is_valid_rule("A")
