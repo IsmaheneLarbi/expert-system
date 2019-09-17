@@ -48,9 +48,9 @@ def is_valid_rule(line):
 
     words = line.strip().split()
     line = "".join(words)
-    implication = line.count("<=>") + line.count("=>")
-    if (not (implication) or implication > 2):
-        print("shit how do you exect me to deduce anything, genius ?")
+    implication = line.count("<=>") if line.count("<=>") else line.count("=>")
+    if (implication != 1):
+        print("Error: invalid rule ", line, "You must use one and only one implication !")
         return (0)
     while (i < len(line)):
         if (line[i] == '('):
@@ -68,7 +68,7 @@ def is_valid_rule(line):
             else:
                 print("Syntax error in line [", line, "] near '", line[i], "' at character ", i + 1, "expected proposition")
                 return (0)
-        elif (line[i] == '<' and is_op(line, i)):
+        elif (line[i] == '<' and is_op(line, i)): # or line[i] == '=' ???
             if (brackets):
                 print("Syntax error in line [", line, "] near '", line[i], "' expected ')'")
                 return (0)
@@ -102,11 +102,9 @@ def is_valid_query(line):
         return (1)
     return (0)
 
-def is_valid_file(lines):
+def is_valid_file(lines, rules, facts, query):
     i = 0
-    rules = []
-    facts = []
-    query = []
+    
     while (i < len(lines) and ("<=>" in lines[i] or "=>" in lines[i]) and is_valid_rule(lines[i])):
         rules.append(lines[i].strip())
         i += 1
@@ -126,8 +124,8 @@ def is_valid_file(lines):
         print("I got new rules I count them")
         return (1)
     else:
-        print("oh-oh, something wrong :o")
-        print("Your file shuld list: rules, then facts and queries -in one line each- in that order !")
+        print("Missing bracket")
+        print("Your file should list: rules, then facts and queries -in one line each- in that order !")
     # if (lines[-1] != lines or not len(rules) or not len(facts) or not len(query)):
     return (0)
 
@@ -140,25 +138,31 @@ def ignore_comments(lines):
             new_lines.append(line)
     return new_lines
 
-def parse(lines):
+def parse(lines, rules, facts, query):
     new_lines = ignore_comments(lines)
-    is_valid_file(new_lines)
+    is_valid_file(new_lines, rules, facts, query)
     return (new_lines)
 
 def expert_system():
+    '''This function parses the input file, extracts facts and answers the queries'''
+    rules = []
+    facts = []
+    query = []
+
     if (len(sys.argv) != 2):
         return (1)
     lines = load_file(sys.argv[1])
     if (lines):
-        new_lines = parse(lines)
+        new_lines = parse(lines, rules, facts, query)
         for i, line in enumerate(new_lines):
             print("[", i, "]",  line)
 
 if (__name__ == "__main__"):
-    expert_system()
-    # rule = "A+C=>B+C"
+    # expert_system()
+    rule = "(A <=> C + D)"
+    # rule = "(A+C=>B+C)=>D"
     # print(rule[6:8] == "=>")
-    # is_valid_rule(rule)
+    print(is_valid_rule(rule))
     # # print(len("a"))
     # facts = "?ABC"
     # print(is_valid_query(facts))
