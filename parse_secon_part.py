@@ -1,14 +1,14 @@
 import re
 
-rules = ["C => E",
+rules = ["C K => E",
 		"A + (B + C) => D",
-		"A | B => C",
+		"A | $ B => C",
 		"A + B => Y + Z"
 		]
 
-facts = ["=ABG"]
+facts = ["=AB"]
 
-queries =["?GVX"]
+queries =["?BA"]
 
 def node_for_rules(rules):
 	rulesNode = []
@@ -26,6 +26,8 @@ def verif_facts_in_rules(facts, rulesNode):
 	for fact in factsNode:
 		if fact not in rulesNode:
 			return False
+		if not (fact.isalpha() or fact.isupper()):
+			return False
 	return True
 
 def verif_queries_in_rules(queries, rulesNode):
@@ -37,10 +39,13 @@ def verif_queries_in_rules(queries, rulesNode):
 	for querie in queriesNode:
 		if querie not in rulesNode:
 			return False
+		if not (querie.isalpha() or querie.isupper()):
+			return False
 	return True
 
 
 rulesNode = node_for_rules(rules)
+
 if not verif_facts_in_rules(facts, rulesNode):
 	print("A fact variable was not defined")
 if not verif_queries_in_rules(queries, rulesNode):
