@@ -1,3 +1,4 @@
+import re
 from is_valid_rule import is_binary_op
 from is_valid_rule import is_op
 from is_valid_rule import is_proposition
@@ -5,7 +6,7 @@ from is_valid_rule import is_proposition
 class Rule:
     def __init__(self, rule):
         self.rule = rule
-    
+
     def is_valid_rule(self):
         i = 0
         brackets = 0
@@ -47,3 +48,6 @@ class Rule:
             return (0)
         else:
             return (1)
+
+rule = Rule("( A => C )")
+rule.reg()

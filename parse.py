@@ -10,15 +10,6 @@ def load_file(f):
         print(fnf)
     return(lines)
 
-# def is_valid_line(line):
-#     print(line)
-#     alphabet = ["=>", "<=>", '?', '=', '!', '(', ')']
-#     for word in line:
-#         print(word)
-#         if word not in alphabet and not word.isalpha() and not word.isupper():
-#             return (0)
-#     return (1)
-
 def is_proposition(rule, i):
     if (i >= len(rule) or i < 0):
         return (0)
@@ -84,50 +75,45 @@ def is_valid_rule(line):
     else:
         return (1)
 
-def is_valid_lst_of_facts(line):
-    line = line.strip().split('=')
-    if (len(line) != 2 or line[1] == "" or line[0] != ""):
-        return (0)
-    facts = line[1]
-    if (facts.isalpha() and facts.isupper()):
-        return (1)
-    return (0)
+def all_queries_in_rules(queries, alphabet):
+    return False if [query for query in queries if query not in alphabet] else True
 
-def is_valid_query(line):
-    line = line.strip().split('?')
-    if (len(line) != 2 or line[1] == "" or line[0] != ""):
-        return (0)
-    queries = line[1]
-    if (queries.isalpha() and queries.isupper()):
-        return (1)
-    return (0)
+def all_facts_in_rules(facts, alphabet):
+    return False if [fact for fact in facts if fact not in alphabet] else True
 
-def is_valid_file(lines, rules, facts, query):
+def parse_file(lines, rules, facts, query):
+    '''This function checks if the syntax is correct, 
+    RETURN VALUES : 1 if it is, 0 if not'''
     i = 0
-    
+
     while (i < len(lines) and ("<=>" in lines[i] or "=>" in lines[i]) and is_valid_rule(lines[i])):
         rules.append(lines[i].strip())
         i += 1
-    while (i < len(lines) and '=' in lines[i] and is_valid_lst_of_facts(lines[i])):
-        lines[i] = lines[i].strip().split('=')[1]
-        facts.append(lines[i])
+    if (i < len(lines) and '=' in lines[i]):
+        facts += list(filter(None, re.split(r"\s|\=|", lines[i])))
         i += 1
-        if (len(facts) == 1):
-            break
-    while (i < len(lines) and '?' in lines[i] and is_valid_query(lines[i])):
-        lines[i] = lines[i].strip().split('?')[1]        
-        query.append(lines[i])
+    if (i < len(lines) and '?' in lines[i]):
+        query += list(filter(None, re.split(r"\s|\?|", lines[i])))
         i += 1
-        if (len(query) == 1):
-            break
     if (lines[-1] == lines[i - 1] and rules and facts and query):
-        print("I got new rules I count them")
         return (1)
     else:
-        print("Missing bracket")
         print("Your file should list: rules, then facts and queries -in one line each- in that order !")
-    # if (lines[-1] != lines or not len(rules) or not len(facts) or not len(query)):
     return (0)
+
+def is_valid_file(lines, rules, facts, query):
+    '''This function checks wether the facts and queries given belong to our known propositions
+    RETURN VALUES: 1 if they do, if not 0'''
+    alphabet = []
+
+    if not parse_file(lines, rules, facts, query):
+        return (0)
+    for rule in rules:
+        alphabet += [prop for prop in rule if prop.isupper() and prop not in alphabet]
+    if not (all_facts_in_rules(facts, alphabet) and all_queries_in_rules(query, alphabet)):
+        return (0)
+    # check if all rules are consistent
+    return (1)
 
 def ignore_comments(lines):
     new_lines = []
@@ -156,14 +142,21 @@ def expert_system():
         new_lines = parse(lines, rules, facts, query)
         for i, line in enumerate(new_lines):
             print("[", i, "]",  line)
+        print("===rules====")
+        print(rules)
+        print("====facts=====")
+        print(facts)
+        print("=====query===")
+        print(query)
 
 if (__name__ == "__main__"):
-    # expert_system()
-    rule = "(A <=> C + D)"
-    # rule = "(A+C=>B+C)=>D"
-    # print(rule[6:8] == "=>")
-    print(is_valid_rule(rule))
-    # # print(len("a"))
-    # facts = "?ABC"
-    # print(is_valid_query(facts))
-    # print(is_lst_of_facts(facts))
+    expert_system()
+    # if ((query = list(filter(None, re.split(r"\s|\?|", "?GVX")))) and query):
+    #     print("OK")
+        # print("Truthy")
+    # alphabet = ['A', 'Q','B', 'V', 'X', 'W', 'E']
+    # facts = ['Q', 'W', 'E']
+    # queries = ['Z', 'S', 'B']
+    # print(is_query_in_rules("Q", alphabet))
+    # if not ([fact for fact in facts if fact not in alphabet] and [query for query in queries if query not in alphabet]):
+    #     print("Faulty")
