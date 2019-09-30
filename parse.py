@@ -1,5 +1,6 @@
 import sys
 import re
+from check_syntax import *
 
 def load_file(f):
     lines = ""
@@ -9,29 +10,6 @@ def load_file(f):
     except FileNotFoundError as fnf:
         print(fnf)
     return(lines)
-
-def is_proposition(rule, i):
-    if (i >= len(rule) or i < 0):
-        return (0)
-    letter = rule[i]
-    if (i + 1 < len(rule) and rule[i + 1].isalpha()):
-        return 0
-    if (not letter.isalpha() or not letter.isupper()):
-        return (0)
-    return (1)
-
-def is_op(line, i):
-    if (line[i] == '|' or line[i] == '+' or line[i] == '^'):
-        return (1)
-    elif (line[i] == '='):
-        return (1) if ((i + 1) < len(line) and line[i + 1] == '>') else (0)
-    elif (line[i] == '<'):
-        return (1) if ((i + 2) < len(line) and line[i:i+3] == "<=>") else (0)
-
-def is_binary_op(line, i):
-    if (line[i] == '|' or line[i] == '+' or line[i] == '^'):
-        return (1)
-    return (0)
     
 def is_valid_rule(line):
     i = 0
@@ -74,12 +52,6 @@ def is_valid_rule(line):
         return (0)
     else:
         return (1)
-
-def all_queries_in_rules(queries, alphabet):
-    return False if [query for query in queries if query not in alphabet] else True
-
-def all_facts_in_rules(facts, alphabet):
-    return False if [fact for fact in facts if fact not in alphabet] else True
 
 def parse_file(lines, rules, facts, query):
     '''This function checks if the syntax is correct, 
@@ -151,12 +123,3 @@ def expert_system():
 
 if (__name__ == "__main__"):
     expert_system()
-    # if ((query = list(filter(None, re.split(r"\s|\?|", "?GVX")))) and query):
-    #     print("OK")
-        # print("Truthy")
-    # alphabet = ['A', 'Q','B', 'V', 'X', 'W', 'E']
-    # facts = ['Q', 'W', 'E']
-    # queries = ['Z', 'S', 'B']
-    # print(is_query_in_rules("Q", alphabet))
-    # if not ([fact for fact in facts if fact not in alphabet] and [query for query in queries if query not in alphabet]):
-    #     print("Faulty")

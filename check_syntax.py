@@ -20,3 +20,9 @@ def is_binary_op(line, i):
     if (line[i] == '|' or line[i] == '+' or line[i] == '^'):
         return (1)
     return (0)
+
+def all_queries_in_rules(queries, alphabet):
+    return False if [query for query in queries if query not in alphabet] else True
+
+def all_facts_in_rules(facts, alphabet):
+    return False if [fact for fact in facts if fact not in alphabet] else True
