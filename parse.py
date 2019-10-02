@@ -73,17 +73,19 @@ def parse_file(lines, rules, facts, query):
         print("Your file should list: rules, then facts and queries -in one line each- in that order !")
     return (0)
 
-def is_valid_file(lines, rules, facts, query):
+def is_valid_file(lines, rules, alphabet, facts, query):
     '''This function checks wether the facts and queries given belong to our known propositions
     RETURN VALUES: 1 if they do, if not 0'''
-    alphabet = []
+    props = []
 
     if not parse_file(lines, rules, facts, query):
         return (0)
     for rule in rules:
-        alphabet += [prop for prop in rule if prop.isupper() and prop not in alphabet]
+        props += [prop for prop in rule if prop.isupper() and prop not in props]
+        alphabet.update(dict(zip(props, len(props) * [0])))
     if not (all_facts_in_rules(facts, alphabet) and all_queries_in_rules(query, alphabet)):
         return (0)
+    alphabet.update({key:1 for key in facts})
     # check if all rules are consistent
     return (1)
 
@@ -96,14 +98,30 @@ def ignore_comments(lines):
             new_lines.append(line)
     return new_lines
 
-def parse(lines, rules, facts, query):
+def remove_dbl_impl(rules):
+    new_rules = {}
+
+    for rule in rules:
+        rule = "".join(re.split(r"\s", rule))
+        if "<=>" in rule:
+            split = rule.rpartition("<=>")
+            new_rules[split[0]] = split[2]
+        else:
+            split = rule.rpartition("=>")
+        new_rules[split[2]] = split[0]
+    return new_rules
+
+def parse(lines, rules, alphabet, facts, query, rules_base):
     new_lines = ignore_comments(lines)
-    is_valid_file(new_lines, rules, facts, query)
+    if (is_valid_file(new_lines, rules, alphabet, facts, query)):
+        rules_base.update(remove_dbl_impl(rules))
     return (new_lines)
 
 def expert_system():
     '''This function parses the input file, extracts facts and answers the queries'''
     rules = []
+    rules_base = {}
+    alphabet = {}
     facts = []
     query = []
 
@@ -111,11 +129,15 @@ def expert_system():
         return (1)
     lines = load_file(sys.argv[1])
     if (lines):
-        new_lines = parse(lines, rules, facts, query)
+        new_lines = parse(lines, rules, alphabet, facts, query, rules_base)
         for i, line in enumerate(new_lines):
             print("[", i, "]",  line)
         print("===rules====")
         print(rules)
+        print("=====RULES BASE =====")
+        print(rules_base)
+        print("=====alphabet=====")
+        print(alphabet)
         print("====facts=====")
         print(facts)
         print("=====query===")
@@ -123,3 +145,4 @@ def expert_system():
 
 if (__name__ == "__main__"):
     expert_system()
+    # remove_dbl_impl(["A<=>C"])

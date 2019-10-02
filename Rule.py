@@ -1,7 +1,5 @@
 import re
-from is_valid_rule import is_binary_op
-from is_valid_rule import is_op
-from is_valid_rule import is_proposition
+from check_syntax import *
 
 class Rule:
     def __init__(self, rule):
