@@ -73,6 +73,9 @@ def parse_file(lines, rules, facts, query):
         print("Your file should list: rules, then facts and queries -in one line each- in that order !")
     return (0)
 
+def negate(prop):
+    return ((prop + 1)>>1)^1
+
 def is_valid_file(lines, rules, alphabet, facts, query):
     '''This function checks wether the facts and queries given belong to our known propositions
     RETURN VALUES: 1 if they do, if not 0'''
@@ -144,5 +147,6 @@ def expert_system():
         print(query)
 
 if (__name__ == "__main__"):
-    expert_system()
+    # expert_system()
+    print(negate(1))
     # remove_dbl_impl(["A<=>C"])
