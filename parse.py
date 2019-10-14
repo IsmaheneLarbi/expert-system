@@ -73,8 +73,12 @@ def parse_file(lines, rules, facts, query):
         print("Your file should list: rules, then facts and queries -in one line each- in that order !")
     return (0)
 
-def negate(prop):
-    return ((prop + 1)>>1)^1
+# def negate(prop):
+#     return prop^1
+
+# def translate_rule(rule):
+#     new_rule = rule.replace('+', '&')
+    
 
 def is_valid_file(lines, rules, alphabet, facts, query):
     '''This function checks wether the facts and queries given belong to our known propositions
@@ -114,6 +118,29 @@ def remove_dbl_impl(rules):
         new_rules[split[2]] = split[0]
     return new_rules
 
+# def deduce(rules, facts):
+#     '''This functions computes the rule'''
+#     new_rules = {}
+#     for key in rules:
+#         if '+' in rules[key]:
+#             ops = rules[key].split('+')
+#             value = facts[ops[0]]& facts[ops[1]]
+#             print(value)
+
+def deduce(rule, facts):
+    # if (query)
+    print(query[0])
+
+def backward_chaining(queries, rules_base, alphabet):
+    for query in queries:
+        if query not in alphabet:
+            print("Query ", query, "not in list of propositions, please add a rule containing your query")
+            return (0)
+        for concl, cond in rules_base.items():
+            if query in concl:
+                print("yay ! found", query, "in", concl, ":", cond)
+                # deduce(query, )
+
 def parse(lines, rules, alphabet, facts, query, rules_base):
     new_lines = ignore_comments(lines)
     if (is_valid_file(new_lines, rules, alphabet, facts, query)):
@@ -145,8 +172,49 @@ def expert_system():
         print(facts)
         print("=====query===")
         print(query)
+        backward_chaining(['V'], rules_base, alphabet)
+
+def do(one, op, two):
+    if op == '+':
+        return (one & two)
+    elif op == '^':
+        return (one ^ two)
+    elif op == '|':
+        return (one | two)
+    else:
+        return -1
+
+def negate(rule):
+    while '!' in rule:
+        i = rule.index('!')
+        rule[i + 1] = rule[i + 1] ^ 1
+        del rule[i]
+
+def simplify(rule, op):
+    while op in rule:
+        i = rule.index(op)
+        rule[i + 1] = do(rule[i + 1], op, rule[i - 1])
+        del rule[i - 1]
+        del rule[i - 1]
+
+def test(rule, alphabet):
+    i = 0
+    rule = list(rule)
+
+    for i, r in enumerate(rule):
+        if (r.isalpha()):
+            rule[i] = alphabet[r]
+    negate(rule)
+    simplify(rule, '+')
+    simplify(rule, '^')
+    simplify(rule, '|')
 
 if (__name__ == "__main__"):
     # expert_system()
-    print(negate(1))
+    alphabet = {'A': 1, 'B': 1, 'C':0, 'D':0, 'E':1}
+    test("!A+B|C^!D+E", alphabet)
+    # print(negate(1))
+    # rules = {'"A"|"C"':'B+D'}
+    # facts = {'B': 1, 'D': 1}
+    # deduce(rules, facts)
     # remove_dbl_impl(["A<=>C"])
