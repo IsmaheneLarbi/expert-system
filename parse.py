@@ -175,6 +175,9 @@ def expert_system():
         backward_chaining(['V'], rules_base, alphabet)
 
 def do(one, op, two):
+    one = int(one)
+    two = int(two)
+
     if op == '+':
         return (one & two)
     elif op == '^':
@@ -185,17 +188,21 @@ def do(one, op, two):
         return -1
 
 def negate(rule):
+    print("=====NEGATE=====")
     while '!' in rule:
         i = rule.index('!')
         rule[i + 1] = rule[i + 1] ^ 1
         del rule[i]
+    return rule
 
 def simplify(rule, op):
+    print("=======", op, "=====")
     while op in rule:
         i = rule.index(op)
         rule[i + 1] = do(rule[i + 1], op, rule[i - 1])
         del rule[i - 1]
         del rule[i - 1]
+    return rule
 
 def test(rule, alphabet):
     i = 0
@@ -208,11 +215,22 @@ def test(rule, alphabet):
     simplify(rule, '+')
     simplify(rule, '^')
     simplify(rule, '|')
+    return rule
+
+def rec(rule, alphabet, index):
+    res = re.search(r"\((\w|!|\+|\^|\|)*\)", rule)
+    if (res):
+        rule = rule.replace(res.group(), str(test(res.group().replace('(', '').replace(')', ''), alphabet)[0]))
+        print("new rule :", rule)
+        rec(rule, alphabet, index)
+    else:
+        rule = test(rule, alphabet)
 
 if (__name__ == "__main__"):
     # expert_system()
     alphabet = {'A': 1, 'B': 1, 'C':0, 'D':0, 'E':1}
-    test("!A+B|C^!D+E", alphabet)
+    # test("(((!A)+B)|C^!D)+E", alphabet)
+    rec("(((!A)+B)|C^!D)+E", alphabet, 0)
     # print(negate(1))
     # rules = {'"A"|"C"':'B+D'}
     # facts = {'B': 1, 'D': 1}
