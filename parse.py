@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 import sys
 import re
 from check_syntax import *
@@ -73,13 +75,6 @@ def parse_file(lines, rules, facts, query):
         print("Your file should list: rules, then facts and queries -in one line each- in that order !")
     return (0)
 
-# def negate(prop):
-#     return prop^1
-
-# def translate_rule(rule):
-#     new_rule = rule.replace('+', '&')
-    
-
 def is_valid_file(lines, rules, alphabet, facts, query):
     '''This function checks wether the facts and queries given belong to our known propositions
     RETURN VALUES: 1 if they do, if not 0'''
@@ -93,16 +88,20 @@ def is_valid_file(lines, rules, alphabet, facts, query):
     if not (all_facts_in_rules(facts, alphabet) and all_queries_in_rules(query, alphabet)):
         return (0)
     alphabet.update({key:1 for key in facts})
+    rules = [rule.replace(' ', '') for rule in rules]
     # check if all rules are consistent
+    forward_chaining(facts, rules, alphabet)
     return (1)
 
 def ignore_comments(lines):
     new_lines = []
     for i, line in enumerate(lines):
-        if (lines[i][0] != "#" and lines[i].strip()):
+        if (lines[i].strip()):
+            line = line.strip()
             if (line.find("#") != -1):
                 line = line[:line.find("#")]
-            new_lines.append(line)
+            if (line):
+                new_lines.append(line)
     return new_lines
 
 def remove_dbl_impl(rules):
@@ -118,28 +117,63 @@ def remove_dbl_impl(rules):
         new_rules[split[2]] = split[0]
     return new_rules
 
-# def deduce(rules, facts):
-#     '''This functions computes the rule'''
-#     new_rules = {}
-#     for key in rules:
-#         if '+' in rules[key]:
-#             ops = rules[key].split('+')
-#             value = facts[ops[0]]& facts[ops[1]]
-#             print(value)
+def solve(conclusion, alphabet, data):
+    rules = []
 
-def deduce(rule, facts):
-    # if (query)
-    print(query[0])
+    conclusion = conclusion.split('+')
+    print("conclusion = ", conclusion)
+    for prop in conclusion:
+        if '!' in prop:
+            prop = prop[1]
+            if prop in data.keys() and data[prop] == 1:
+                print("Invalid file :", prop, "Cannot be True and False at the same time")
+                exit(1)
+            else:
+                data[prop] = 0
+        else:
+            data[prop] = 1
+    print("data gathered :", data)
 
-def backward_chaining(queries, rules_base, alphabet):
+
+def forward_chaining(facts, rules_set, alphabet):
+    '''this function checks wether there are inconsistencies in the rules'''
+    rules = []
+    data = {fact:1 for fact in facts}
+    rules = [rule.replace(' ', '').replace('\t', '') for rule in rules_set]
+    
+    print("rules in fc", rules)
+    for rule in rules:
+        split = re.split(r"=>", rule)
+        condition = split[0]
+        conclusion = split[1]
+        if (rec(condition, alphabet)):
+            print(rule)
+            solve(conclusion, alphabet, data)
+
+def backward_chaining(queries, rules_base, alphabet, facts):
+    rules = {}
+
     for query in queries:
         if query not in alphabet:
             print("Query ", query, "not in list of propositions, please add a rule containing your query")
-            return (0)
-        for concl, cond in rules_base.items():
-            if query in concl:
-                print("yay ! found", query, "in", concl, ":", cond)
-                # deduce(query, )
+            exit(1)
+        rules.update({k:v for (k,v) in rules_base.items() if query in k})
+        print("rules containing", query, rules)
+        for rule in rules:
+            if rec(rules[query], alphabet):
+                facts.append(query)
+                alphabet[query] = 1
+        # for concl, cond in rules_base.items():
+        #     if query in concl:
+        #         print("yay ! found", query, "in", concl, ":", cond)
+        #         rules[concl] = cond
+        #         if (rec(cond, alphabet) and concl not in facts):
+        #             facts.append(concl)
+        print("rules used", rules)
+        if query in facts:
+            print(query, "is True")
+        else:
+            print(query, "is False")
 
 def parse(lines, rules, alphabet, facts, query, rules_base):
     new_lines = ignore_comments(lines)
@@ -151,7 +185,7 @@ def expert_system():
     '''This function parses the input file, extracts facts and answers the queries'''
     rules = []
     rules_base = {}
-    alphabet = {}
+    alphabet = {}   
     facts = []
     query = []
 
@@ -172,7 +206,20 @@ def expert_system():
         print(facts)
         print("=====query===")
         print(query)
-        backward_chaining(['V'], rules_base, alphabet)
+        # stack_rules(rules)
+        # forward_chaining(facts, rules, alphabet)
+        # backward_chaining(query, rules_base, alphabet, facts)
+        # backward_chaining(['V'], rules_base, alphabet, facts)
+        print("====facts=====")
+        print(facts)
+        # scan_rules(rules, alphabet)
+
+def calc(rules, alphabet):
+    rule = "A | (B + C) => D"
+    operators = {'^': 0, '|': 1, '+': 2, '!': 3}
+    split = re.split(r'=>|<=>', rule)
+    split[0] = list(split[0].replace(' ', ''))
+    split[1] = list(split[1].replace(' ', ''))
 
 def do(one, op, two):
     one = int(one)
@@ -188,15 +235,15 @@ def do(one, op, two):
         return -1
 
 def negate(rule):
-    print("=====NEGATE=====")
+    # print("=====NEGATE=====")
     while '!' in rule:
         i = rule.index('!')
-        rule[i + 1] = rule[i + 1] ^ 1
+        rule[i + 1] = int(rule[i + 1]) ^ 1
         del rule[i]
     return rule
 
 def simplify(rule, op):
-    print("=======", op, "=====")
+    # print("=======", op, "=====")
     while op in rule:
         i = rule.index(op)
         rule[i + 1] = do(rule[i + 1], op, rule[i - 1])
@@ -215,24 +262,16 @@ def test(rule, alphabet):
     simplify(rule, '+')
     simplify(rule, '^')
     simplify(rule, '|')
-    return rule
+    return rule[0]
 
-def rec(rule, alphabet, index):
+def rec(rule, alphabet):
     res = re.search(r"\((\w|!|\+|\^|\|)*\)", rule)
-    if (res):
-        rule = rule.replace(res.group(), str(test(res.group().replace('(', '').replace(')', ''), alphabet)[0]))
-        print("new rule :", rule)
-        rec(rule, alphabet, index)
+    if (res == None):
+        value = test(rule, alphabet)
+        return (value)
     else:
-        rule = test(rule, alphabet)
+        rule = rule.replace(res.group(), str(test(res.group().replace('(', '').replace(')', ''), alphabet)))
+        return rec(rule, alphabet)
 
 if (__name__ == "__main__"):
-    # expert_system()
-    alphabet = {'A': 1, 'B': 1, 'C':0, 'D':0, 'E':1}
-    # test("(((!A)+B)|C^!D)+E", alphabet)
-    rec("(((!A)+B)|C^!D)+E", alphabet, 0)
-    # print(negate(1))
-    # rules = {'"A"|"C"':'B+D'}
-    # facts = {'B': 1, 'D': 1}
-    # deduce(rules, facts)
-    # remove_dbl_impl(["A<=>C"])
+    expert_system()
